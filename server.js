@@ -17,10 +17,6 @@ const pricingRoutes = require('./routes/pricingRoutes');
 
 const app = express();
 
-// Connect to MongoDB (skip if already connected — e.g. during testing)
-if (mongoose.connection.readyState === 0) {
-  connectDB();
-}
 
 // Middleware
 app.use(express.json());
@@ -60,9 +56,23 @@ app.get('*', (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`\n🚚 Logistics Fleet System running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health\n`);
-});
+
+const startServer = async () => {
+  try {
+    if (mongoose.connection.readyState === 0) {
+      await connectDB();
+    }
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`🚚 Logistics Fleet System running on http://localhost:${PORT}`);
+      console.log(`📊 Health check: http://localhost:${PORT}/api/health\n`);
+    });
+  } catch (error) {
+    console.error(`Failed to start server: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 module.exports = app;
