@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogiFleet — Logistics & Fleet Delivery Tracking</title>
+  <meta name="description" content="Comprehensive logistics and fleet delivery tracking system for customers, drivers and dispatchers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ AUTH SECTION -->
+<div id="auth-section">
+  <div class="auth-left">
+    <div class="auth-card card p-4">
+      <div class="text-center mb-4">
+        <h2 class="fw-bold" style="color: var(--color-white);"><i class="bi bi-truck"></i> LogiFleet</h2>
+        <p class="text-muted small">Logistics &amp; Fleet Tracking System</p>
+      </div>
+
+      <!-- Auth tabs -->
+      <ul class="nav nav-pills nav-fill mb-4" id="auth-tabs">
+        <li class="nav-item"><button class="nav-link active" onclick="showAuthTab('login')">Login</button></li>
+        <li class="nav-item"><button class="nav-link" onclick="showAuthTab('register')">Register</button></li>
+      </ul>
+
+      <div id="auth-alert" class="alert-box"></div>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="doLogin(event)">
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <div class="mt-3 p-3 rounded small" style="background: rgba(255,255,255,0.05); color: var(--color-text-muted);">
+          <strong>Demo credentials:</strong><br/>
+          Admin: admin@logistics.com / Admin@123<br/>
+          Dispatcher: dispatch@logistics.com / Dispatch@123<br/>
+          Driver: driver1@logistics.com / Driver@123<br/>
+          Customer: customer1@logistics.com / Customer@123
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" style="display:none" onsubmit="doRegister(event)">
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="Your full name" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="you@example.com" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password <small class="text-muted">(min 6 chars)</small></label>
+          <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Role</label>
+          <select id="reg-role" class="form-select">
+            <option value="CUSTOMER">Customer</option>
+            <option value="DRIVER">Driver</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+      </form>
+    </div>
+  </div>
+  <div class="auth-right">
+    <img src="/images/hero.jpg" alt="Futuristic 3D Logistics and Delivery Truck" />
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ APP SECTION -->
+<div id="app-section" style="display:none; flex-direction:column">
+
+  <!-- Navbar -->
+  <nav class="navbar px-3" style="height:56px">
+    <span class="navbar-brand"><i class="bi bi-truck me-2"></i>LogiFleet</span>
+    <div class="d-flex align-items-center gap-3">
+      <span id="nav-user-name" class="text-light small"></span>
+      <span id="nav-role-badge" class="badge bg-primary"></span>
+      <button class="btn btn-sm btn-outline-light" onclick="doLogout()">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </div>
+  </nav>
+
+  <div class="d-flex" style="flex:1">
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="main-sidebar"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+
+      <!-- ─── CUSTOMER PAGES ─────────────────────────────────────────────── -->
+
+      <div id="page-my-shipments" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-box-seam me-2"></i>My Shipments</h5>
+        <div id="my-shipments-alert" class="alert-box"></div>
+        <div id="my-shipments-list"></div>
+      </div>
+
+      <div id="page-book-shipment" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>Book a Shipment</h5>
+        <div class="card p-4" style="max-width:560px">
+          <div id="book-alert" class="alert-box"></div>
+          <form onsubmit="doBookShipment(event)">
+            <div class="mb-3">
+              <label class="form-label">Pickup Address</label>
+              <input type="text" id="book-pickup" class="form-control" placeholder="Full pickup address" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Drop Address</label>
+              <input type="text" id="book-drop" class="form-control" placeholder="Full destination address" required />
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col">
+                <label class="form-label">Weight (kg)</label>
+                <input type="number" id="book-weight" class="form-control" min="0.1" step="0.1" value="10" required />
+              </div>
+              <div class="col">
+                <label class="form-label">Distance (km)</label>
+                <input type="number" id="book-distance" class="form-control" min="0.1" step="0.1" value="100" required />
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Shipment Type</label>
+              <select id="book-type" class="form-select">
+                <option value="STANDARD">Standard</option>
+                <option value="EXPRESS">Express (+30%)</option>
+                <option value="FRAGILE">Fragile (+20%)</option>
+                <option value="BULK">Bulk (+10%)</option>
+              </select>
+            </div>
+            <div id="book-price-preview" class="mb-3 p-2 rounded small" style="display:none; background: rgba(255,255,255,0.05); color: var(--color-text-muted);"></div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary" onclick="estimatePrice()">
+                <i class="bi bi-calculator"></i> Estimate Price
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2"></i> Book Shipment
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="page-track-shipment" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt me-2"></i>Track Shipment</h5>
+        <div class="card p-4" style="max-width:560px">
+          <div id="track-alert" class="alert-box"></div>
+          <div class="input-group mb-3">
+            <input type="text" id="track-id" class="form-control" placeholder="Paste Shipment ID here" />
+            <button class="btn btn-primary" onclick="doTrackShipment()">
+              <i class="bi bi-search"></i> Track
+            </button>
+          </div>
+          <div id="track-result"></div>
+        </div>
+      </div>
+
+      <!-- ─── DRIVER PAGES ───────────────────────────────────────────────── -->
+
+      <div id="page-driver-profile" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-person-badge me-2"></i>My Driver Profile</h5>
+        <div id="driver-profile-content" class="card p-4" style="max-width:480px"></div>
+      </div>
+
+      <div id="page-assigned-shipments" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-clipboard-check me-2"></i>Assigned Shipments</h5>
+        <div id="assigned-alert" class="alert-box"></div>
+        <div id="assigned-shipments-list"></div>
+      </div>
+
+      <div id="page-update-status" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-arrow-repeat me-2"></i>Update Shipment Status</h5>
+        <div class="card p-4" style="max-width:540px">
+          <div id="status-update-alert" class="alert-box"></div>
+          <div class="mb-3">
+            <label class="form-label">Select Shipment</label>
+            <select id="status-shipment-select" class="form-select">
+              <option value="">-- Choose a shipment --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">New Status</label>
+            <select id="status-new" class="form-select">
+              <option value="PICKED_UP">PICKED_UP</option>
+              <option value="IN_TRANSIT">IN_TRANSIT</option>
+              <option value="DELIVERED">DELIVERED</option>
+              <option value="FAILED">FAILED</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Note <small class="text-muted">(optional)</small></label>
+            <input type="text" id="status-note" class="form-control" placeholder="e.g. Picked up from warehouse" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Location Text <small class="text-muted">(optional)</small></label>
+            <input type="text" id="status-location" class="form-control" placeholder="e.g. Mumbai Checkpoint" />
+          </div>
+          <button class="btn btn-primary" onclick="doUpdateStatus()">
+            <i class="bi bi-check2-circle"></i> Update Status
+          </button>
+        </div>
+
+        <!-- Delivery Proof -->
+        <div class="card p-4 mt-3" style="max-width:540px">
+          <h6 class="fw-bold mb-3">Add Delivery Proof</h6>
+          <div id="proof-alert" class="alert-box"></div>
+          <div class="mb-3">
+            <label class="form-label">Select Delivered Shipment</label>
+            <select id="proof-shipment-select" class="form-select">
+              <option value="">-- Choose --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Receiver Name</label>
+            <input type="text" id="proof-receiver" class="form-control" placeholder="Person who received the package" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirmation Note</label>
+            <input type="text" id="proof-note" class="form-control" placeholder="e.g. Handed to security guard" />
+          </div>
+          <button class="btn btn-success" onclick="doAddProof()">
+            <i class="bi bi-check-circle"></i> Add Delivery Proof
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── ADMIN / DISPATCHER PAGES ──────────────────────────────────── -->
+
+      <div id="page-admin-dashboard" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h5>
+        <div id="admin-stats" class="row g-3 mb-4"></div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Recent Shipments</div>
+              <div class="card-body p-0">
+                <div id="admin-recent-shipments" class="p-3 small"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Driver Availability</div>
+              <div class="card-body p-0">
+                <div id="admin-driver-list" class="p-3 small"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-vehicles" class="page">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-truck me-2"></i>Vehicle Fleet</h5>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#vehicleModal" onclick="openVehicleModal()">
+            <i class="bi bi-plus"></i> Add Vehicle
+          </button>
+        </div>
+        <div id="vehicles-alert" class="alert-box"></div>
+        <div id="vehicles-list"></div>
+      </div>
+
+      <div id="page-drivers" class="page">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-people me-2"></i>Drivers</h5>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#driverModal" onclick="openDriverModal()">
+            <i class="bi bi-plus"></i> Add Driver Profile
+          </button>
+        </div>
+        <div id="drivers-alert" class="alert-box"></div>
+        <div id="drivers-list"></div>
+      </div>
+
+      <div id="page-all-shipments" class="page">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-box-seam me-2"></i>All Shipments</h5>
+          <select id="admin-status-filter" class="form-select form-select-sm" style="width:160px" onchange="loadAdminShipments()">
+            <option value="">All Statuses</option>
+            <option value="BOOKED">Booked</option>
+            <option value="ASSIGNED">Assigned</option>
+            <option value="PICKED_UP">Picked Up</option>
+            <option value="IN_TRANSIT">In Transit</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </div>
+        <div id="admin-shipments-alert" class="alert-box"></div>
+        <div id="admin-shipments-list"></div>
+      </div>
+
+      <div id="page-assign-shipment" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-person-check me-2"></i>Assign Shipment</h5>
+        <div class="card p-4" style="max-width:540px">
+          <div id="assign-alert" class="alert-box"></div>
+          <div class="mb-3">
+            <label class="form-label">Shipment (BOOKED only)</label>
+            <select id="assign-shipment-id" class="form-select">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Driver (Available only)</label>
+            <select id="assign-driver-id" class="form-select">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Vehicle (Available only)</label>
+            <select id="assign-vehicle-id" class="form-select">
+              <option value="">-- Select --</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="doAssignShipment()">
+            <i class="bi bi-check2-circle"></i> Assign
+          </button>
+        </div>
+      </div>
+
+      <div id="page-trips" class="page">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0"><i class="bi bi-map me-2"></i>Trips</h5>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tripModal" onclick="openTripModal()">
+            <i class="bi bi-plus"></i> Create Trip
+          </button>
+        </div>
+        <div id="trips-alert" class="alert-box"></div>
+        <div id="trips-list"></div>
+      </div>
+
+      <div id="page-fleet-report" class="page">
+        <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2"></i>Fleet Utilization Report</h5>
+        <button class="btn btn-outline-primary btn-sm mb-3" onclick="loadFleetReport()">
+          <i class="bi bi-arrow-clockwise"></i> Refresh Report
+        </button>
+        <div id="fleet-report-content"></div>
+      </div>
+
+    </div><!-- end main-content -->
+  </div><!-- end flex wrapper -->
+</div><!-- end app-section -->
+
+<!-- ═══════════════════════════════════════════════════════════════ MODALS -->
+
+<!-- Vehicle Modal -->
+<div class="modal fade" id="vehicleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="vehicle-modal-title">Add Vehicle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="vehicle-modal-alert" class="alert-box"></div>
+        <div class="mb-3">
+          <label class="form-label">Type</label>
+          <select id="vm-type" class="form-select">
+            <option value="TRUCK">Truck</option>
+            <option value="VAN">Van</option>
+            <option value="MINI_TRUCK">Mini Truck</option>
+            <option value="BIKE">Bike</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Capacity (kg)</label>
+          <input type="number" id="vm-capacity" class="form-control" min="1" value="500" required />
+        </div>
+        <div class="mb-3" id="vm-status-group" style="display:none">
+          <label class="form-label">Status</label>
+          <select id="vm-status" class="form-select">
+            <option value="AVAILABLE">Available</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+        </div>
+        <input type="hidden" id="vm-id" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveVehicle()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Driver Modal -->
+<div class="modal fade" id="driverModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Driver Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="driver-modal-alert" class="alert-box"></div>
+        <div class="mb-3">
+          <label class="form-label">User ID <small class="text-muted">(must have DRIVER role)</small></label>
+          <input type="text" id="dm-userId" class="form-control" placeholder="MongoDB ObjectId of user" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">License Number</label>
+          <input type="text" id="dm-license" class="form-control" placeholder="DL-XXXX-XXXX" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Phone</label>
+          <input type="text" id="dm-phone" class="form-control" placeholder="+91XXXXXXXXXX" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDriver()">Create Profile</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Trip Modal -->
+<div class="modal fade" id="tripModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Trip</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="trip-modal-alert" class="alert-box"></div>
+        <div class="mb-3">
+          <label class="form-label">Driver</label>
+          <select id="tm-driverId" class="form-select"><option value="">-- Select --</option></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Shipments <small class="text-muted">(assigned to driver)</small></label>
+          <select id="tm-shipmentIds" class="form-select" multiple style="height:120px">
+          </select>
+          <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Date</label>
+          <input type="date" id="tm-date" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Notes</label>
+          <input type="text" id="tm-notes" class="form-control" placeholder="Optional route notes" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTrip()">Create Trip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

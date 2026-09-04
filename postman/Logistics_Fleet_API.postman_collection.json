@@ -1,0 +1,514 @@
+{
+  "info": {
+    "name": "Logistics Fleet API",
+    "_postman_id": "logistics-fleet-001",
+    "description": "Complete API collection for the Logistics & Fleet Delivery Tracking System (P08)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",      "value": "http://localhost:5000/api" },
+    { "key": "customerToken","value": "" },
+    { "key": "driverToken",  "value": "" },
+    { "key": "adminToken",   "value": "" },
+    { "key": "shipmentId",   "value": "" },
+    { "key": "vehicleId",    "value": "" },
+    { "key": "driverId",     "value": "" },
+    { "key": "tripId",       "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Register Customer",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test Customer\",\"email\":\"testcustomer@test.com\",\"password\":\"Test@123\",\"role\":\"CUSTOMER\"}"
+            }
+          }
+        },
+        {
+          "name": "2. Register Driver",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test Driver\",\"email\":\"testdriver@test.com\",\"password\":\"Test@123\",\"role\":\"DRIVER\"}"
+            }
+          }
+        },
+        {
+          "name": "3. Login Customer",
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json(); if(json.success){ pm.collectionVariables.set('customerToken', json.data.token); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"customer1@logistics.com\",\"password\":\"Customer@123\"}"
+            }
+          }
+        },
+        {
+          "name": "4. Login Driver",
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json(); if(json.success){ pm.collectionVariables.set('driverToken', json.data.token); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"driver1@logistics.com\",\"password\":\"Driver@123\"}"
+            }
+          }
+        },
+        {
+          "name": "5. Login Admin",
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json(); if(json.success){ pm.collectionVariables.set('adminToken', json.data.token); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"admin@logistics.com\",\"password\":\"Admin@123\"}"
+            }
+          }
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "6. Create Vehicle",
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json(); if(json.success){ pm.collectionVariables.set('vehicleId', json.data.vehicle._id); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/vehicles",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"type\":\"VAN\",\"capacity\":800}"
+            }
+          }
+        },
+        {
+          "name": "7. Get All Vehicles",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vehicles",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Get Vehicle By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vehicles/{{vehicleId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/vehicles/{{vehicleId}}",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"capacity\":1000,\"status\":\"AVAILABLE\"}"
+            }
+          }
+        },
+        {
+          "name": "Deactivate Vehicle",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/vehicles/{{vehicleId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Drivers",
+      "item": [
+        {
+          "name": "8. Create Driver Profile",
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json(); if(json.success){ pm.collectionVariables.set('driverId', json.data.driver._id); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/drivers",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"userId\":\"REPLACE_WITH_DRIVER_USER_ID\",\"licenseNumber\":\"DL-9999-2024\",\"phone\":\"9876500000\"}"
+            }
+          }
+        },
+        {
+          "name": "Get All Drivers",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/drivers",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Get Driver Profile (Driver self)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/drivers/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{driverToken}}" }]
+          }
+        },
+        {
+          "name": "Update Driver",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/drivers/{{driverId}}",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isAvailable\":true}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipments",
+      "item": [
+        {
+          "name": "9. Create Shipment (Customer)",
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json(); if(json.success){ pm.collectionVariables.set('shipmentId', json.data.shipment._id); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/shipments",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickupAddress\":\"123, MG Road, Bengaluru\",\"dropAddress\":\"456, Anna Salai, Chennai\",\"weight\":15,\"distance\":350,\"shipmentType\":\"STANDARD\"}"
+            }
+          }
+        },
+        {
+          "name": "Get My Shipments (Customer)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shipments",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }]
+          }
+        },
+        {
+          "name": "Get All Shipments (Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shipments",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "10. Assign Shipment (Dispatcher)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/assign",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"driverId\":\"{{driverId}}\",\"vehicleId\":\"{{vehicleId}}\"}"
+            }
+          }
+        },
+        {
+          "name": "11a. Update Status → PICKED_UP (Driver)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"PICKED_UP\",\"note\":\"Package collected from warehouse\",\"locationText\":\"Bengaluru Depot\"}"
+            }
+          }
+        },
+        {
+          "name": "11b. Update Status → IN_TRANSIT (Driver)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"IN_TRANSIT\",\"note\":\"En route to Chennai\",\"locationText\":\"Krishnagiri Toll\"}"
+            }
+          }
+        },
+        {
+          "name": "11c. Update Status → DELIVERED (Driver)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"DELIVERED\",\"note\":\"Delivered to customer.\",\"locationText\":\"Anna Salai, Chennai\"}"
+            }
+          }
+        },
+        {
+          "name": "12. Track Shipment (Customer)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/track",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }]
+          }
+        },
+        {
+          "name": "13. Add Delivery Proof (Driver)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/delivery-proof",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"receiverName\":\"Suresh Kumar\",\"confirmationNote\":\"Delivered and signed by receiver\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trips",
+      "item": [
+        {
+          "name": "14. Create Trip",
+          "event": [{ "listen": "test", "script": { "exec": ["var json = pm.response.json(); if(json.success){ pm.collectionVariables.set('tripId', json.data.trip._id); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/trips",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"driverId\":\"{{driverId}}\",\"shipmentIds\":[\"{{shipmentId}}\"],\"date\":\"2024-12-20\",\"notes\":\"Bangalore to Chennai run\"}"
+            }
+          }
+        },
+        {
+          "name": "15. Get Trips",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/trips",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Get Trip By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/trips/{{tripId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "Update Trip",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/trips/{{tripId}}",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"notes\":\"Updated notes for trip\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "16. Fleet Utilization Report",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/reports/fleet-utilization",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pricing",
+      "item": [
+        {
+          "name": "17. Pricing Estimate",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/pricing/estimate",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"distance\":350,\"weight\":15,\"shipmentType\":\"EXPRESS\"}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error & Security Tests",
+      "item": [
+        {
+          "name": "TEST: No Token → 401",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vehicles",
+            "header": []
+          }
+        },
+        {
+          "name": "TEST: Customer → Admin Route → 403",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/reports/fleet-utilization",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }]
+          }
+        },
+        {
+          "name": "TEST: Customer → Create Vehicle → 403",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/vehicles",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"type\":\"VAN\",\"capacity\":500}"
+            }
+          }
+        },
+        {
+          "name": "TEST: Invalid Status Transition → 409",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"BOOKED\"}"
+            }
+          }
+        },
+        {
+          "name": "TEST: Missing Required Fields → 400",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/shipments",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickupAddress\":\"Some Address\"}"
+            }
+          }
+        },
+        {
+          "name": "TEST: Invalid ID → 400/404",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shipments/invalidid123",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }]
+          }
+        },
+        {
+          "name": "TEST: Duplicate Email → 409",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Dup User\",\"email\":\"customer1@logistics.com\",\"password\":\"Test@123\",\"role\":\"CUSTOMER\"}"
+            }
+          }
+        },
+        {
+          "name": "TEST: BOOKED → DELIVERED → 409",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/shipments/{{shipmentId}}/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"DELIVERED\"}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
