@@ -53,8 +53,8 @@ const shipmentSchema = new mongoose.Schema(
     },
     distance: {
       type: Number,
-      required: [true, 'Distance is required'],
-      min: [0.1, 'Distance must be at least 0.1 km'],
+      default: 0,
+      min: 0,
     },
     shipmentType: {
       type: String,

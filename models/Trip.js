@@ -7,12 +7,21 @@ const tripSchema = new mongoose.Schema(
       ref: 'Driver',
       required: [true, 'driverId is required'],
     },
-    shipmentIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Shipment',
+    shipmentIds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Shipment',
+        },
+      ],
+      required: [true, 'shipmentIds is required'],
+      validate: {
+        validator: function (v) {
+          return Array.isArray(v) && v.length > 0;
+        },
+        message: 'Trip must contain at least one shipment',
       },
-    ],
+    },
     date: {
       type: Date,
       required: [true, 'Trip date is required'],

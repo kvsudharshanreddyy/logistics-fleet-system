@@ -6,7 +6,6 @@ const driverSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'userId is required'],
-      unique: true,
     },
     vehicleId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -31,6 +30,6 @@ const driverSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// userId already has unique:true which creates an index automatically
+driverSchema.index({ userId: 1 });
 
 module.exports = mongoose.model('Driver', driverSchema);
