@@ -388,26 +388,71 @@ async function loadAdminDashboard() {
   }
 }
 
+// ─── Vehicle image map ───────────────────────────────────────────────────────
+const VEHICLE_IMAGES = {
+  TRUCK:      '/images/truck.jpg',
+  MINI_TRUCK: '/images/mini_truck.jpg',
+  VAN:        null,   // use emoji fallback
+  BIKE:       null,   // use emoji fallback
+};
+const VEHICLE_EMOJI = {
+  TRUCK:      '🚛',
+  VAN:        '🚐',
+  MINI_TRUCK: '🛻',
+  BIKE:       '🏍️',
+};
+
+function vehicleImageHTML(type, status) {
+  const imgSrc = VEHICLE_IMAGES[type] || null;
+  const emoji  = VEHICLE_EMOJI[type] || '🚗';
+  const imgContent = imgSrc
+    ? `<img src="${imgSrc}" alt="${type}" onerror="this.parentElement.innerHTML='<div class=&quot;vehicle-card-img-placeholder&quot;>${emoji}</div>'">`
+    : `<div class="vehicle-card-img-placeholder">${emoji}</div>`;
+  return `
+    <div class="vehicle-card-img-wrap">
+      ${imgContent}
+      <span class="vehicle-status-pill ${status}">${status}</span>
+    </div>`;
+}
+
 async function loadVehicles() {
   clearAlert('vehicles-alert');
   const data = await api('GET', '/vehicles');
   if (!data.success) return showAlert('vehicles-alert', data.message);
   const el = document.getElementById('vehicles-list');
-  if (!data.data.vehicles.length) { el.innerHTML = '<p class="text-muted">No vehicles found.</p>'; return; }
-  el.innerHTML = `<div class="table-responsive"><table class="table">
-    <thead><tr><th>Type</th><th>Capacity</th><th>Status</th><th>Current Driver</th><th>Actions</th></tr></thead>
-    <tbody>
-    ${data.data.vehicles.map(v => `<tr>
-      <td><i class="bi bi-truck me-1"></i>${v.type}</td>
-      <td>${v.capacity}kg</td>
-      <td>${statusBadge(v.status)}</td>
-      <td>${v.currentDriverId ? (v.currentDriverId.userId?.name || 'Linked') : '—'}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary me-1" onclick="openVehicleModal('${v._id}','${v.type}',${v.capacity},'${v.status}')">Edit</button>
-        <button class="btn btn-sm btn-outline-danger" onclick="deactivateVehicle('${v._id}')">Deactivate</button>
-      </td>
-    </tr>`).join('')}
-    </tbody></table></div>`;
+  if (!data.data.vehicles.length) {
+    el.innerHTML = '<p class="text-muted">No vehicles found.</p>';
+    return;
+  }
+
+  const isAdmin = currentUser && ['ADMIN', 'DISPATCHER'].includes(currentUser.role);
+
+  el.innerHTML = `<div class="vehicle-grid">
+    ${data.data.vehicles.map(v => {
+      const driverName = v.currentDriverId?.userId?.name;
+      return `
+      <div class="vehicle-card">
+        ${vehicleImageHTML(v.type, v.status)}
+        <div class="vehicle-card-body">
+          <div class="vehicle-card-type">${v.type.replace('_', ' ')}</div>
+          <div class="vehicle-card-meta">Max Capacity: <strong>${v.capacity} kg</strong></div>
+          <div class="vehicle-card-driver">
+            <i class="bi bi-person-fill"></i>
+            <span>${driverName ? driverName : '<em style="opacity:0.5">No driver assigned</em>'}</span>
+          </div>
+          ${isAdmin ? `
+          <div class="vehicle-card-actions">
+            <button class="btn btn-outline-primary btn-sm" onclick="openVehicleModal('${v._id}','${v.type}',${v.capacity},'${v.status}')">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="deactivateVehicle('${v._id}')">
+              <i class="bi bi-slash-circle me-1"></i>Deactivate
+            </button>
+          </div>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 function openVehicleModal(id = '', type = 'TRUCK', capacity = 500, status = 'AVAILABLE') {

@@ -5,6 +5,66 @@
 
 ---
 
+> [!IMPORTANT]
+> ## 🚨 CRITICAL NOTE FOR TEAMMATES / FRESH REPO CLONES
+> ### Why does login show "Incorrect Credentials" after cloning from GitHub?
+> 1. **`.env` is NEVER pushed to GitHub:** For security, `.env` is listed in `.gitignore`. When a teammate clones the repo, they do not have the `.env` file yet.
+> 2. **Database data is not stored in GitHub:** User accounts (`admin@logistics.com`, `dispatch@logistics.com`, etc.) exist in the **MongoDB database**, not in the JavaScript source code.
+>
+> ---
+>
+> ### 🚀 Quick Fix: 2 Options to Get It Working
+>
+> #### ✅ OPTION 1 (Recommended): Connect to the Shared Team MongoDB Atlas Cluster
+> Create a `.env` file in the project root (`logistics-fleet-system/.env`) and paste this exact configuration:
+>
+> ```env
+> PORT=5000
+> MONGODB_URI=mongodb+srv://kvsudharshanreddyy_db_user:OcaNb1v3ZJ6jIUoC@cluster0.q6fwr4c.mongodb.net/logistics_fleet?appName=Cluster0
+> JWT_SECRET=logistics_super_secret_key_2024
+> JWT_EXPIRES_IN=7d
+> BCRYPT_ROUNDS=10
+> ```
+>
+> *Note on Atlas Network Access:* If you get a connection timeout error, ensure IP `0.0.0.0/0` ("Allow access from anywhere") is added in MongoDB Atlas under **Security -> Network Access**.
+>
+> ---
+>
+> #### ✅ OPTION 2: Using Local MongoDB or Your Own Atlas Cluster
+> If you are using your own local MongoDB (`mongodb://localhost:27017/logistics_fleet`), you **MUST seed the database first** so the demo accounts exist:
+>
+> ```bash
+> # 1. Create .env with your local MONGODB_URI
+> cp .env.example .env
+>
+> # 2. Seed all demo users, vehicles, and shipments:
+> npm run seed
+> # (or: node seed.js)
+> ```
+>
+> ---
+>
+> ### 🔑 Demo Login Credentials (Ready to use after Step 1 or Step 2)
+> | Role | Email | Password |
+> |---|---|---|
+> | **Admin** | `admin@logistics.com` | `Admin@123` |
+> | **Dispatcher** | `dispatch@logistics.com` | `Dispatch@123` |
+> | **Driver 1** | `driver1@logistics.com` | `Driver@123` |
+> | **Driver 2** | `driver2@logistics.com` | `Driver@123` |
+> | **Customer 1** | `customer1@logistics.com` | `Customer@123` |
+> | **Customer 2** | `customer2@logistics.com` | `Customer@123` |
+>
+> ---
+>
+> ### ⚡ Commands to Run the Project
+> ```bash
+> npm install      # Install dependencies
+> node server.js   # Start server (http://localhost:5000)
+> # OR: npm run dev (for nodemon auto-restart on changes)
+> ```
+
+---
+
 ## 1. Project Title
 
 **AI-Driven Logistics, Fleet & Delivery Tracking System**
@@ -236,52 +296,58 @@ erDiagram
 ## 10. Setup Instructions
 
 ### Prerequisites
-- Node.js 18+
-- MongoDB 7.x (running locally)
+- **Node.js**: v18 or higher
+- **MongoDB**: Either a local MongoDB 7.x instance OR the team MongoDB Atlas Cloud URI
 
-### Steps
+### Steps for Teammates & Developers
 
 ```bash
 # 1. Clone or navigate to project
+git clone <repo-url>
 cd logistics-fleet-system
 
 # 2. Install dependencies
 npm install
 
-# 3. Configure environment
+# 3. Configure environment (.env)
 cp .env.example .env
-# Edit .env — set your MONGODB_URI and JWT_SECRET
+# Open .env and ensure MONGODB_URI is set.
+# To use the pre-seeded cloud database, use the shared Atlas URI (see Section 11).
 
-# 4. Start MongoDB (if not already running)
-sudo systemctl start mongod
-# OR
-mongod --dbpath /data/db &
+# 4. Seed demo data (REQUIRED only if using a fresh local database)
+npm run seed
+# or: node seed.js
 
-# 5. Seed demo data
-node seed.js
-
-# 6. Start the server
-npm start
-# OR with auto-reload:
+# 5. Start the server
+node server.js
+# OR with auto-reload during development:
 npm run dev
 
-# 7. Open browser
-http://localhost:5000
+# 6. Open browser
+# Navigate to: http://localhost:5000
 ```
 
 ---
 
 ## 11. Environment Variables
 
+Create a file named `.env` in the root of the project:
+
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/logistics_fleet
-JWT_SECRET=your_super_secret_jwt_key_change_in_production
+
+# Option 1: Shared Team MongoDB Atlas Cluster (pre-seeded with all demo accounts)
+MONGODB_URI=mongodb+srv://kvsudharshanreddyy_db_user:OcaNb1v3ZJ6jIUoC@cluster0.q6fwr4c.mongodb.net/logistics_fleet?appName=Cluster0
+
+# Option 2: Local MongoDB instance (Requires running `npm run seed`)
+# MONGODB_URI=mongodb://localhost:27017/logistics_fleet
+
+JWT_SECRET=logistics_super_secret_key_2024
 JWT_EXPIRES_IN=7d
 BCRYPT_ROUNDS=10
 ```
 
-> ⚠️ Never commit the real `.env` file. Only `.env.example` is committed.
+> ⚠️ Never commit the real `.env` file into git. It is included in `.gitignore` to prevent credentials from being exposed publicly.
 
 ---
 
@@ -493,22 +559,23 @@ Cost = Base Rate + Distance Cost + Weight Cost + Type Surcharge
 
 ## 21. Demo Credentials (Seeded)
 
-Run `node seed.js` to create these users:
+> 💡 **Notice:** If you are connected to the shared MongoDB Atlas cluster, these accounts are already created and active! If you are running locally or on a fresh cluster, run `npm run seed` (or `node seed.js`) to create them.
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@logistics.com | Admin@123 |
-| Dispatcher | dispatch@logistics.com | Dispatch@123 |
-| Driver 1 | driver1@logistics.com | Driver@123 |
-| Driver 2 | driver2@logistics.com | Driver@123 |
-| Customer 1 | customer1@logistics.com | Customer@123 |
-| Customer 2 | customer2@logistics.com | Customer@123 |
+| Role | Email | Password | Access Level |
+|------|-------|----------|--------------|
+| **Admin** | `admin@logistics.com` | `Admin@123` | Full system access, fleet stats, reports, user & vehicle management |
+| **Dispatcher** | `dispatch@logistics.com` | `Dispatch@123` | Assign drivers, dispatch shipments, create vehicles & drivers |
+| **Driver 1** | `driver1@logistics.com` | `Driver@123` | Driver portal, view assigned shipments, update status, submit delivery proof |
+| **Driver 2** | `driver2@logistics.com` | `Driver@123` | Secondary driver account for multi-driver testing |
+| **Customer 1** | `customer1@logistics.com` | `Customer@123` | Book shipments, track packages, view delivery cost & history |
+| **Customer 2** | `customer2@logistics.com` | `Customer@123` | Secondary customer account |
 
-Seed also creates:
-- 4 vehicles (3 active, 1 inactive)
-- 2 driver profiles
-- 4 shipments in various states (BOOKED, ASSIGNED, IN_TRANSIT, DELIVERED)
-- 1 trip
+Seeding script (`npm run seed`) automatically populates:
+- All 6 demo users above with hashed passwords
+- 4 vehicles (Trucks, Mini-truck, Van, Bike)
+- 2 driver profiles linked to Driver 1 and Driver 2
+- 4 sample shipments spanning various statuses (`BOOKED`, `ASSIGNED`, `IN_TRANSIT`, `DELIVERED`)
+- Sample trip groupings with audit status logs
 
 ---
 
