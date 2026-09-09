@@ -392,7 +392,7 @@ async function loadAdminDashboard() {
 const VEHICLE_IMAGES = {
   TRUCK:      '/images/truck.jpg',
   MINI_TRUCK: '/images/mini_truck.jpg',
-  VAN:        null,   // use emoji fallback
+  VAN:        '/images/van.jpg',
   BIKE:       null,   // use emoji fallback
 };
 const VEHICLE_EMOJI = {
